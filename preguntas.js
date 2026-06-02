@@ -1,205 +1,129 @@
 // ============================================================
-// APP.JS — lógica principal
-// Supabase SDK cargado síncronamente en el <head>
+// BASE DE DATOS RUT → NOMBRE
+// Total empleados: 112
+// Generado desde listado South Wind 2022
 // ============================================================
 
-let supabase;
+const RUT_DB = {
+  "10041276-4": "Vergara Cristian Antonio",
+  "10753391-5": "Almonacid Maria",
+  "10810821-5": "Viveros Veronica",
+  "10915278-1": "Jimenez Marcos",
+  "11240376-0": "Bello Agustina",
+  "11289295-8": "Ferrada Eladia Jaqueline",
+  "11551147-5": "Cazanga Mirtha Mariela",
+  "11666846-7": "Burgos Maria Magdalena",
+  "11702019-3": "Yevilao Edit",
+  "11738467-5": "Maulen Fabiola",
+  "11770856-k": "Carriel Eliana",
+  "12184744-2": "Paredes María Jimena",
+  "12458961-4": "Ravanal Gemita",
+  "12650438-1": "Hidalgo Maria Elena",
+  "12817974-7": "Valenzuela Evelyn",
+  "12856758-5": "Mendibure Romanet",
+  "13062548-7": "Calderon Johanna",
+  "13334569-8": "Mendez Debora Del Carmen",
+  "13374398-7": "Bernales Isabel",
+  "13446243-4": "Bastias Karina Lissette",
+  "13452585-1": "Brito Tania Elvira",
+  "13548084-3": "Caniu Ivonne Del Carmen",
+  "14585422-9": "Quintanilla Vanessa",
+  "14728920-0": "Saona Omar",
+  "14904476-0": "Montenegro Priscilla",
+  "15128082-k": "Jaña Maciel",
+  "15232187-2": "Flores Carola",
+  "15668652-2": "Henriquez Karen",
+  "15743753-4": "Santander Paola",
+  "15932814-7": "Silva Gennesis Lucia",
+  "15939492-1": "Lira Macarena Del Pilar",
+  "16083999-6": "Videla Cristina",
+  "16127220-5": "Diaz Oliver Stanley",
+  "16147584-k": "Bravo Cristian",
+  "16258071-k": "Alfaro Bárbara",
+  "16347158-2": "Bustos Cynthia",
+  "16406161-2": "Acuña Catalina Andrea",
+  "16518010-0": "Vargas Marcelo Alejandro",
+  "16519251-6": "Manzano David Abraham",
+  "16521290-8": "Mejias Hector Alejandro",
+  "16637711-0": "Mella Marjorie",
+  "16723161-6": "Mardones Leticia Isabel",
+  "16725411-k": "Valdés Cecilia Fabiola",
+  "16784918-0": "Singer Camilo",
+  "16787962-4": "Vargas Sebastian",
+  "16812245-4": "Madrid Patricia Alejandra",
+  "16946067-1": "Valdebenito Patricia",
+  "17292686-k": "Gutierrez Nataly Isabel",
+  "17650728-4": "Padilla Michel Ivan",
+  "17833635-5": "Vilches Nicolino Francesco",
+  "17942143-7": "Fuentes Antonella Alejandra",
+  "17985230-6": "Castillo Ingrid",
+  "18079599-5": "Perez Maria Jose",
+  "18205325-2": "Alarcón Claudia",
+  "18409122-4": "Diaz Alejandra Denisse",
+  "18837357-7": "Olea Michel Angel",
+  "18862887-7": "Lizama Juan",
+  "18977406-0": "Silva Marjorie",
+  "19163402-0": "Nuñez Anais Scarlett",
+  "19260642-k": "Sagredo Felipe Eduardo",
+  "19586142-0": "Erazo Mauricio",
+  "19857729-4": "Rivas Victor Hugo",
+  "20670975-8": "Aguilar Ezequiel Abrahan",
+  "22613445-k": "Estela Victor Raul",
+  "23627528-0": "Garcia Paula",
+  "23764049-7": "Fleurette Jean",
+  "24081767-5": "Joseph Ilanette",
+  "24214365-5": "Cheristin Orilia",
+  "24526982-k": "Cheristin Ocelois",
+  "24950469-6": "Plaisir Gina",
+  "24982140-3": "Cheristin Delivrance",
+  "25168633-5": "Mardy Martine",
+  "25186785-2": "Exavier Emaniela",
+  "25225257-6": "Cherismond Ricot",
+  "25295126-1": "Marie Mode Elvine",
+  "25359946-4": "Marie Rachelle Vilcin",
+  "25455633-5": "Exavier Annuel",
+  "25529674-4": "Judelene Clavin",
+  "25614613-4": "Mardy Marie Carmel",
+  "25635524-8": "Tecius Guens",
+  "25662855-4": "Cheristin Hary",
+  "25664737-0": "Duraze Elmise",
+  "25753690-4": "Dor Magalie",
+  "25849240-4": "Louis Santana",
+  "25930189-0": "Cenat Sonette",
+  "25983548-8": "Zerpa Yuneidy",
+  "25993251-3": "Gabriel Marie Myrtha",
+  "26009621-4": "Thamara Duberus France",
+  "26115829-9": "Dubreus Veronia",
+  "26180096-9": "Lundy Rose Martha",
+  "26187660-4": "Rangel Maria Edilsa",
+  "26266826-6": "Cadet Oussepe",
+  "26274788-3": "Pierre Guerrier Asmide",
+  "26440418-5": "Accelon Kettelyne",
+  "26582389-0": "Lundy Joanne",
+  "26621778-1": "Figueroa Leidys Mariosquis",
+  "26687595-9": "Sandoval Simon Antonio",
+  "26853733-3": "Joseph Rebecca",
+  "26891781-0": "Ojeda Carlos Gustavo",
+  "26918467-1": "Briceño Diego Armando",
+  "26954313-2": "Dieucius Elvitha",
+  "27074215-7": "Oropeza Rita Elena",
+  "6700170-2": "Rojas Antenor",
+  "7317191-1": "Valencia Sara",
+  "7753093-2": "Rojas Laura Inelia",
+  "7810045-1": "Torres Marcelina",
+  "8345269-2": "Culun Ariela Del Carmen",
+  "8480500-9": "Elgueta Elvira",
+  "8824164-9": "Padilla Uberlinda",
+  "9091944-k": "Bravo Bernardo Arturo",
+  "9478817-k": "Silva Angelica",
+  "9589943-9": "Celedon Yolanda",
+};
 
-function initSupabase() {
-  // SDK cargado síncronamente — disponible directo
-  if (window.supabase && window.supabase.createClient) {
-    supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
-    return true;
-  }
-  console.error('Supabase SDK no disponible');
-  return false;
+function normalizarRut(rut) {
+  return rut.toLowerCase().replace(/\./g, '').replace(/\s/g, '').trim();
 }
 
-// ── ESTADO LOCAL ──────────────────────────────────────────
-function getParticipante() {
-  const raw = sessionStorage.getItem('sw_participante');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-function setParticipante(p) {
-  sessionStorage.setItem('sw_participante', JSON.stringify(p));
-}
-
-// ── LOGIN ─────────────────────────────────────────────────
-function buscarRut() {
-  const input = document.getElementById('rutInput');
-  const rut = input.value.trim();
-  if (!rut) return;
-
-  const nombre = buscarNombrePorRut(rut);
-
-  if (!nombre) {
-    mostrarError('RUT no encontrado. Verifica que esté escrito con guión (ej: 12345678-9) y sin puntos.');
-    return;
-  }
-
-  ocultarError();
-  document.getElementById('nombreConfirm').textContent = nombre;
-  document.getElementById('rutForm').style.display = 'none';
-  const cb = document.getElementById('confirmBlock');
-  cb.style.display = 'flex';
-
-  window._rutPendiente = normalizarRut(rut);
-  window._nombrePendiente = nombre;
-}
-
-async function confirmarParticipante() {
-  const rut = window._rutPendiente;
-  const nombre = window._nombrePendiente;
-  if (!rut || !nombre) return;
-
-  const btn = document.querySelector('.btn-confirm');
-  btn.textContent = '...';
-  btn.disabled = true;
-
-  try {
-    const { data, error } = await supabase
-      .from('qrhunt_participantes')
-      .upsert(
-        { rut, nombre, updated_at: new Date().toISOString() },
-        { onConflict: 'rut', ignoreDuplicates: false }
-      )
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    setParticipante({ rut, nombre, id: data.id });
-    window.location.href = 'dashboard.html';
-
-  } catch (err) {
-    console.error(err);
-    mostrarError('Error al conectar con el servidor. Intenta de nuevo.');
-    btn.textContent = '¡Sí, soy yo! →';
-    btn.disabled = false;
-  }
-}
-
-function resetLogin() {
-  document.getElementById('rutForm').style.display = 'block';
-  document.getElementById('confirmBlock').style.display = 'none';
-  document.getElementById('rutInput').value = '';
-  ocultarError();
-  window._rutPendiente = null;
-  window._nombrePendiente = null;
-}
-
-function mostrarError(msg) {
-  const el = document.getElementById('errorMsg');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function ocultarError() {
-  const el = document.getElementById('errorMsg');
-  if (el) el.style.display = 'none';
-}
-
-// ── INIT ──────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  initSupabase();
-
-  const input = document.getElementById('rutInput');
-  if (input) {
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') buscarRut();
-    });
-  }
-
-  // Si ya está logueado, mostrar acceso directo
-  const p = getParticipante();
-  if (p) {
-    const loginCard = document.getElementById('loginCard');
-    if (loginCard) {
-      loginCard.innerHTML = `
-        <div class="card-label">Ya estás participando</div>
-        <div class="name-display">
-          <div class="name-label">Jugando como</div>
-          <div class="name-value">${p.nombre}</div>
-        </div>
-        <button class="btn-primary" style="margin-top:16px" onclick="window.location.href='dashboard.html'">
-          Continuar →
-        </button>
-      `;
-    }
-  }
-
-  cargarEstadisticasGlobales();
-  cargarMiniRanking();
-  setInterval(cargarMiniRanking, CONFIG.rankingRefreshMs);
-});
-
-// ── ESTADÍSTICAS GLOBALES ────────────────────────────────
-async function cargarEstadisticasGlobales() {
-  if (!supabase) return;
-  try {
-    const { data } = await supabase
-      .from('qrhunt_participantes')
-      .select('puntaje, qrs_completados');
-
-    if (!data || data.length === 0) return;
-
-    document.getElementById('statParticipants').textContent = data.length;
-
-    const totalResp = data.reduce((sum, p) => {
-      const arr = Array.isArray(p.qrs_completados) ? p.qrs_completados : [];
-      return sum + arr.length;
-    }, 0);
-    document.getElementById('statResponses').textContent = totalResp;
-
-    const maxPts = Math.max(...data.map(p => p.puntaje || 0));
-    document.getElementById('statMaxPts').textContent = maxPts;
-
-  } catch (err) {
-    console.error('Stats error:', err);
-  }
-}
-
-// ── MINI RANKING ─────────────────────────────────────────
-async function cargarMiniRanking() {
-  if (!supabase) return;
-  const el = document.getElementById('miniRanking');
-  if (!el) return;
-
-  try {
-    const { data } = await supabase
-      .from('qrhunt_participantes')
-      .select('nombre, puntaje, qrs_completados')
-      .order('puntaje', { ascending: false })
-      .limit(5);
-
-    if (!data || data.length === 0) {
-      el.innerHTML = `<div style="text-align:center; padding:12px; color:var(--text-muted); font-size:13px;">Sé el primero en participar</div>`;
-      return;
-    }
-
-    const posEmojis = ['🥇', '🥈', '🥉'];
-    const posClasses = ['gold', 'silver', 'bronze'];
-
-    el.innerHTML = data.map((p, i) => {
-      const qrs = Array.isArray(p.qrs_completados) ? p.qrs_completados.length : 0;
-      const posLabel = i < 3 ? posEmojis[i] : `${i + 1}°`;
-      const posClass = i < 3 ? posClasses[i] : '';
-      return `
-        <div class="ranking-row">
-          <div class="rank-pos ${posClass}">${posLabel}</div>
-          <div>
-            <div class="rank-name">${p.nombre}</div>
-            <div class="rank-qrs">${qrs}/${CONFIG.totalQrs} QR completados</div>
-          </div>
-          <div class="rank-pts">${p.puntaje || 0} pts</div>
-        </div>
-      `;
-    }).join('');
-
-  } catch (err) {
-    console.error('Ranking error:', err);
-  }
+function buscarNombrePorRut(rut) {
+  const normalizado = normalizarRut(rut);
+  return RUT_DB[normalizado] || null;
 }
