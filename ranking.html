@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Ranking – South Wind</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a1628;
+      --surface: #111f38;
+      --surface2: #1a2f50;
+      --accent: #00c896;
+      --accent2: #00a8ff;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+      --text: #f0f4ff;
+      --text-muted: #7a90b8;
+      --border: #1e3358;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Archivo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px 60px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% -10%, rgba(0,200,150,0.1) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .page-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,200,150,0.1);
+      border: 1px solid rgba(0,200,150,0.3);
+      border-radius: 100px;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .page-header h1 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: clamp(28px, 7vw, 40px);
+      letter-spacing: -0.02em;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    /* Podio top 3 */
+    .podio {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr 1fr;
+      gap: 8px;
+      align-items: end;
+      margin-bottom: 20px;
+    }
+
+    .podio-item {
+      border-radius: 16px;
+      padding: 16px 10px 14px;
+      text-align: center;
+      position: relative;
+    }
+
+    .podio-item.pos-1 {
+      background: linear-gradient(160deg, rgba(255,215,0,0.12), rgba(255,215,0,0.04));
+      border: 1.5px solid rgba(255,215,0,0.3);
+      padding-top: 24px;
+    }
+    .podio-item.pos-2 {
+      background: linear-gradient(160deg, rgba(192,192,192,0.1), rgba(192,192,192,0.03));
+      border: 1.5px solid rgba(192,192,192,0.2);
+    }
+    .podio-item.pos-3 {
+      background: linear-gradient(160deg, rgba(205,127,50,0.1), rgba(205,127,50,0.03));
+      border: 1.5px solid rgba(205,127,50,0.2);
+    }
+
+    .podio-crown { font-size: 22px; margin-bottom: 4px; }
+    .podio-pos { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; }
+    .podio-name {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 13px;
+      line-height: 1.2;
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+    .podio-item.pos-1 .podio-name { color: var(--gold); font-size: 15px; }
+    .podio-item.pos-2 .podio-name { color: var(--silver); }
+    .podio-item.pos-3 .podio-name { color: var(--bronze); }
+
+    .podio-pts {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 18px;
+    }
+    .podio-item.pos-1 .podio-pts { font-size: 22px; color: var(--gold); }
+    .podio-item.pos-2 .podio-pts { color: var(--silver); }
+    .podio-item.pos-3 .podio-pts { color: var(--bronze); }
+
+    .podio-qrs { font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+
+    /* Lista resto */
+    .ranking-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .rank-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .rank-item.highlight {
+      border-color: var(--accent2);
+      background: rgba(0,168,255,0.05);
+    }
+
+    .rank-num {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 14px;
+      color: var(--text-muted);
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .rank-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 14px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .rank-info { flex: 1; min-width: 0; }
+    .rank-name {
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rank-detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    .rank-score {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 18px;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .rank-score .pts-label {
+      font-family: 'Archivo', sans-serif;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: block;
+      text-align: right;
+    }
+
+    /* Empty / loading */
+    .empty-state {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Refresh info */
+    .refresh-note {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 11px;
+      margin-top: 20px;
+    }
+
+    /* Back button */
+    .btn-back {
+      display: block;
+      margin: 20px auto 0;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-family: 'Archivo', sans-serif;
+      font-size: 13px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+
+    .fade-in { animation: fadeIn 0.4s ease forwards; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container fade-in">
+
+    <div class="page-header">
+      <div class="live-pill"><span class="live-dot"></span> En vivo</div>
+      <h1>Ranking 🏆</h1>
+      <p id="rankingMeta">Actualizando...</p>
+    </div>
+
+    <!-- Podio top 3 -->
+    <div class="podio" id="podio">
+      <!-- Generado por JS -->
+    </div>
+
+    <!-- Lista 4+ -->
+    <div class="ranking-list" id="rankingList">
+      <div class="empty-state">Cargando...</div>
+    </div>
+
+    <div class="refresh-note" id="refreshNote">Se actualiza cada 15 segundos</div>
+
+    <button class="btn-back" onclick="history.back()">← Volver</button>
+
+  </div>
+  <script src="js/config.js"></script>
+  <script>
+    let supabase;
+    let rutActual = null;
+
+    async function initSupabase() {
+      if (window.supabase && window.supabase.createClient) {
+        supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
+      }
+    }
+
+    function getParticipante() {
+      const raw = sessionStorage.getItem('sw_participante');
+      try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+    }
+
+    function iniciales(nombre) {
+      return nombre.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+    }
+
+    async function cargarRanking() {
+      if (!supabase) return;
+
+      try {
+        const { data } = await supabase
+          .from('qrhunt_participantes')
+          .select('rut, nombre, puntaje, qrs_completados')
+          .order('puntaje', { ascending: false })
+          .order('updated_at', { ascending: true }) // desempate: primero en llegar
+          .limit(50);
+
+        if (!data || data.length === 0) {
+          document.getElementById('rankingList').innerHTML =
+            '<div class="empty-state">¡Sé el primero en participar!</div>';
+          document.getElementById('podio').innerHTML = '';
+          return;
+        }
+
+        const p = getParticipante();
+        rutActual = p?.rut || null;
+
+        // Meta
+        const total = data.length;
+        const completaron = data.filter(x =>
+          Array.isArray(x.qrs_completados) && x.qrs_completados.length === CONFIG.totalQrs
+        ).length;
+        document.getElementById('rankingMeta').textContent =
+          `${total} participantes · ${completaron} completaron los 5 QR`;
+        document.getElementById('refreshNote').textContent =
+          `Última actualización: ${new Date().toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit',second:'2-digit'})} · Auto-refresca cada 15s`;
+
+        // Podio
+        renderPodio(data.slice(0, 3));
+
+        // Lista resto
+        renderLista(data.slice(3));
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('rankingList').innerHTML =
+          '<div class="empty-state">Error al cargar. Reintentando...</div>';
+      }
+    }
+
+    function renderPodio(top3) {
+      const podio = document.getElementById('podio');
+      if (top3.length === 0) { podio.innerHTML = ''; return; }
+
+      // Orden visual: 2 - 1 - 3
+      const order = [
+        top3[1] || null,
+        top3[0] || null,
+        top3[2] || null,
+      ];
+      const posClasses = ['pos-2', 'pos-1', 'pos-3'];
+      const crowns = ['🥈', '🥇', '🥉'];
+      const posLabels = ['2° lugar', '1° lugar', '3° lugar'];
+      const realPos = [2, 1, 3];
+
+      podio.innerHTML = order.map((item, vi) => {
+        if (!item) return `<div class="podio-item ${posClasses[vi]}"></div>`;
+        const qrs = Array.isArray(item.qrs_completados) ? item.qrs_completados.length : 0;
+        const esMio = item.rut === rutActual;
+        return `
+          <div class="podio-item ${posClasses[vi]}" ${esMio ? 'style="box-shadow:0 0 0 2px var(--accent2)"' : ''}>
+            <div class="podio-crown">${crowns[vi]}</div>
+            <div class="podio-pos">${posLabels[vi]}</div>
+            <div class="podio-name">${item.nombre}${esMio ? ' 👈' : ''}</div>
+            <div class="podio-pts">${item.puntaje || 0}</div>
+            <div class="podio-qrs">${qrs}/${CONFIG.totalQrs} QR</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderLista(items) {
+      const lista = document.getElementById('rankingList');
+      if (items.length === 0) { lista.innerHTML = ''; return; }
+
+      lista.innerHTML = items.map((item, i) => {
+        const pos = i + 4;
+        const qrs = Array.isArray(item.qrs_completados) ? item.qrs_completados.length : 0;
+        const esMio = item.rut === rutActual;
+        return `
+          <div class="rank-item ${esMio ? 'highlight' : ''}">
+            <div class="rank-num">${pos}°</div>
+            <div class="rank-avatar">${iniciales(item.nombre)}</div>
+            <div class="rank-info">
+              <div class="rank-name">${item.nombre}${esMio ? ' 👈' : ''}</div>
+              <div class="rank-detail">${qrs}/${CONFIG.totalQrs} QR completados</div>
+            </div>
+            <div class="rank-score">
+              ${item.puntaje || 0}
+              <span class="pts-label">puntos</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initSupabase();
+      (() => {
+        cargarRanking();
+        setInterval(cargarRanking, CONFIG.rankingRefreshMs);
+      });
+    });
+  </script>
+</body>
+</html>
