@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Estación QR – South Wind</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a1628;
+      --surface: #111f38;
+      --surface2: #1a2f50;
+      --accent: #00c896;
+      --accent2: #00a8ff;
+      --warn: #ff6b35;
+      --correct: #00c896;
+      --wrong: #ff4757;
+      --text: #f0f4ff;
+      --text-muted: #7a90b8;
+      --border: #1e3358;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Archivo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px 60px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(0,200,150,0.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Header estación */
+    .station-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .station-badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 13px;
+      color: #0a1628;
+      white-space: nowrap;
+    }
+
+    .station-info h2 {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .station-info p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Indicador de pregunta */
+    .q-indicator {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .q-dot {
+      flex: 1;
+      height: 4px;
+      border-radius: 100px;
+      background: var(--surface2);
+      transition: background 0.3s;
+    }
+    .q-dot.active { background: var(--accent); }
+    .q-dot.done { background: rgba(0,200,150,0.4); }
+
+    /* Pregunta */
+    .question-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 14px;
+      min-height: 100px;
+    }
+
+    .q-number {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .q-text {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    /* Opciones */
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .option-btn {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      color: var(--text);
+      font-family: 'Archivo', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 16px 18px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      line-height: 1.4;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .option-btn:active:not(:disabled) { transform: scale(0.98); }
+    .option-btn:disabled { cursor: default; }
+
+    .option-btn.selected-correct {
+      border-color: var(--correct);
+      background: rgba(0,200,150,0.1);
+      color: var(--correct);
+    }
+
+    .option-btn.selected-wrong {
+      border-color: var(--wrong);
+      background: rgba(255,71,87,0.1);
+      color: var(--wrong);
+    }
+
+    .option-btn.reveal-correct {
+      border-color: var(--correct);
+      opacity: 0.6;
+    }
+
+    /* Feedback */
+    .feedback-box {
+      display: none;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .feedback-box.correct {
+      background: rgba(0,200,150,0.1);
+      border: 1px solid rgba(0,200,150,0.3);
+      color: var(--correct);
+    }
+
+    .feedback-box.wrong {
+      background: rgba(255,71,87,0.1);
+      border: 1px solid rgba(255,71,87,0.3);
+      color: #ff6b7a;
+    }
+
+    /* Botón siguiente */
+    .btn-next {
+      display: none;
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), #00a878);
+      border: none;
+      border-radius: 12px;
+      color: #0a1628;
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 16px;
+      padding: 16px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-next:active { opacity: 0.85; }
+
+    /* Resultado final del QR */
+    .result-screen {
+      display: none;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .result-emoji { font-size: 64px; margin-bottom: 12px; }
+
+    .result-title {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+
+    .result-desc {
+      color: var(--text-muted);
+      font-size: 15px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .pts-earned {
+      background: linear-gradient(135deg, rgba(0,200,150,0.12), rgba(0,168,255,0.08));
+      border: 1px solid rgba(0,200,150,0.3);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .pts-earned .pts-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .pts-earned .pts-value {
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 48px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .pts-earned .pts-total {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .btn-dashboard {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'Archivo Black', sans-serif;
+      font-size: 15px;
+      padding: 16px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Ya completado */
+    .already-done {
+      display: none;
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.35s ease forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-in {
+      animation: slideIn 0.3s ease forwards;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="station-header fade-in">
+      <div class="station-badge" id="stationBadge">QR ?</div>
+      <div class="station-info">
+        <h2 id="stationTitle">Cargando...</h2>
+        <p id="stationSubtitle">3 preguntas · Responde bien para ganar más puntos</p>
+      </div>
+    </div>
+
+    <!-- Indicador de progreso -->
+    <div class="q-indicator" id="qIndicator">
+      <div class="q-dot"></div>
+      <div class="q-dot"></div>
+      <div class="q-dot"></div>
+    </div>
+
+    <!-- Zona de pregunta -->
+    <div id="questionZone" class="fade-in">
+      <div class="question-card">
+        <div class="q-number" id="qNumber">Pregunta 1 de 3</div>
+        <div class="q-text" id="qText">Cargando...</div>
+      </div>
+
+      <div class="options-list" id="optionsList"></div>
+
+      <div class="feedback-box" id="feedbackBox"></div>
+
+      <button class="btn-next" id="btnNext" onclick="siguientePregunta()">
+        Siguiente →
+      </button>
+    </div>
+
+    <!-- Resultado del QR -->
+    <div class="result-screen" id="resultScreen">
+      <div class="result-emoji" id="resultEmoji">🎯</div>
+      <div class="result-title" id="resultTitle">¡Bien hecho!</div>
+      <div class="result-desc" id="resultDesc"></div>
+      <div class="pts-earned">
+        <div class="pts-label">Puntos ganados en esta estación</div>
+        <div class="pts-value" id="ptsEarned">0</div>
+        <div class="pts-total" id="ptsTotal"></div>
+      </div>
+      <button class="btn-dashboard" onclick="irDashboard()">Ver mi progreso →</button>
+      <button class="btn-dashboard" style="border-color:var(--accent2); color:var(--accent2)" onclick="irRanking()">Ver ranking →</button>
+    </div>
+
+    <!-- Ya completado -->
+    <div class="already-done" id="alreadyDone">
+      <div style="font-size:48px; margin-bottom:12px">✅</div>
+      <div style="font-family:'Archivo Black',sans-serif; font-size:22px; margin-bottom:8px">Ya completaste esta estación</div>
+      <div style="color:var(--text-muted); font-size:14px; margin-bottom:24px">Los puntos ya están contados. ¡Busca el siguiente QR!</div>
+      <button class="btn-dashboard" onclick="irDashboard()">Ver mi progreso →</button>
+    </div>
+
+  </div>
+  <script src="js/config.js"></script>
+  <script src="js/rut-db.js"></script>
+  <script src="js/preguntas.js"></script>
+  <script>
+    let sbClient;
+    let qrNum = 1;
+    let preguntas = [];
+    let preguntaActual = 0;
+    let correctasCount = 0;
+    let respondidas = [];
+
+    async function initSupabase() {
+      if (window.supabase && window.supabase.createClient) {
+        sbClient = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
+      }
+    }
+
+    function getParticipante() {
+      const raw = sessionStorage.getItem('sw_participante');
+      try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+    }
+
+    async function init() {
+      const p = getParticipante();
+      if (!p) { window.location.href = 'index.html'; return; }
+
+      // Obtener número de QR desde URL
+      const params = new URLSearchParams(window.location.search);
+      qrNum = parseInt(params.get('qr')) || 1;
+
+      if (qrNum < 1 || qrNum > CONFIG.totalQrs) {
+        window.location.href = 'dashboard.html';
+        return;
+      }
+
+      // Cargar preguntas de este QR
+      preguntas = PREGUNTAS[qrNum] || [];
+
+      // Header
+      document.getElementById('stationBadge').textContent = `QR ${qrNum}`;
+      document.getElementById('stationTitle').textContent = preguntas[0]?.tema || `Estación ${qrNum}`;
+
+      // Verificar si ya completó este QR
+      if (supabase) {
+        const { data } = await supabase
+          .from('qrhunt_participantes')
+          .select('qrs_completados')
+          .eq('rut', p.rut)
+          .single();
+
+        const completados = data?.qrs_completados || [];
+        if (completados.includes(qrNum)) {
+          mostrarYaCompletado();
+          return;
+        }
+      }
+
+      renderPregunta(0);
+    }
+
+    function renderPregunta(idx) {
+      const q = preguntas[idx];
+      if (!q) return;
+
+      // Indicadores
+      const dots = document.querySelectorAll('.q-dot');
+      dots.forEach((d, i) => {
+        d.className = 'q-dot';
+        if (i < idx) d.classList.add('done');
+        else if (i === idx) d.classList.add('active');
+      });
+
+      document.getElementById('qNumber').textContent = `Pregunta ${idx + 1} de ${preguntas.length}`;
+      document.getElementById('qText').textContent = q.pregunta;
+
+      const lista = document.getElementById('optionsList');
+      lista.innerHTML = q.opciones.map((op, i) => `
+        <button class="option-btn" onclick="seleccionarOpcion(${i})" id="opt-${i}">
+          ${op.texto}
+        </button>
+      `).join('');
+
+      document.getElementById('feedbackBox').style.display = 'none';
+      document.getElementById('btnNext').style.display = 'none';
+
+      document.getElementById('questionZone').classList.remove('fade-in');
+      void document.getElementById('questionZone').offsetWidth;
+      document.getElementById('questionZone').classList.add('fade-in');
+    }
+
+    function seleccionarOpcion(idx) {
+      const q = preguntas[preguntaActual];
+      const esCorrecta = q.opciones[idx].correcta;
+
+      // Deshabilitar todos los botones
+      document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+
+      // Colorear respuesta seleccionada
+      const btnSel = document.getElementById(`opt-${idx}`);
+      btnSel.classList.add(esCorrecta ? 'selected-correct' : 'selected-wrong');
+
+      // Revelar correcta si falló
+      if (!esCorrecta) {
+        q.opciones.forEach((op, i) => {
+          if (op.correcta) {
+            document.getElementById(`opt-${i}`).classList.add('reveal-correct');
+          }
+        });
+      } else {
+        correctasCount++;
+      }
+
+      respondidas.push(esCorrecta);
+
+      // Feedback
+      const fb = document.getElementById('feedbackBox');
+      fb.className = `feedback-box ${esCorrecta ? 'correct' : 'wrong'}`;
+      fb.textContent = esCorrecta ? (q.feedbackCorrecto || '✅ ¡Correcto!') : (q.feedbackIncorrecto || `❌ La respuesta correcta es: ${q.opciones.find(o => o.correcta)?.texto}`);
+      fb.style.display = 'block';
+
+      // Botón siguiente o finalizar
+      const btnNext = document.getElementById('btnNext');
+      btnNext.style.display = 'block';
+
+      const esUltima = preguntaActual === preguntas.length - 1;
+      btnNext.textContent = esUltima ? 'Ver resultado →' : 'Siguiente pregunta →';
+    }
+
+    function siguientePregunta() {
+      const esUltima = preguntaActual === preguntas.length - 1;
+      if (esUltima) {
+        finalizarQr();
+      } else {
+        preguntaActual++;
+        renderPregunta(preguntaActual);
+      }
+    }
+
+    async function finalizarQr() {
+      // Calcular puntos
+      const pts = CONFIG.puntos[correctasCount] || 0;
+
+      const p = getParticipante();
+
+      document.getElementById('questionZone').style.display = 'none';
+      document.getElementById('qIndicator').style.display = 'none';
+
+      // Emojis y títulos según desempeño
+      const emojis = ['😅', '🙂', '🎯'];
+      const titulos = ['¡Seguimos aprendiendo!', '¡Bien hecho!', '¡Perfecto!'];
+      const descs = [
+        'Obtuviste 1 de 3 respuestas correctas. ¡Cada error es una lección!',
+        '2 de 3 respuestas correctas. ¡Muy bien!',
+        '¡3 de 3! Dominas el tema. ¡Excelente!'
+      ];
+
+      const eIdx = Math.max(0, correctasCount - 1);
+      document.getElementById('resultEmoji').textContent = emojis[eIdx];
+      document.getElementById('resultTitle').textContent = titulos[eIdx];
+      document.getElementById('resultDesc').textContent = descs[eIdx];
+      document.getElementById('ptsEarned').textContent = `+${pts}`;
+
+      // Guardar en Supabase
+      if (supabase && p) {
+        try {
+          // Obtener puntaje actual
+          const { data: current } = await supabase
+            .from('qrhunt_participantes')
+            .select('puntaje, qrs_completados')
+            .eq('rut', p.rut)
+            .single();
+
+          const nuevoPuntaje = (current?.puntaje || 0) + pts;
+          const qrsYa = Array.isArray(current?.qrs_completados) ? current.qrs_completados : [];
+          const nuevosQrs = [...new Set([...qrsYa, qrNum])];
+
+          // Bonus si completó todos
+          let bonusAplicado = 0;
+          if (nuevosQrs.length === CONFIG.totalQrs && !qrsYa.includes(qrNum)) {
+            bonusAplicado = CONFIG.bonusCompletarTodo;
+          }
+
+          await supabase
+            .from('qrhunt_participantes')
+            .update({
+              puntaje: nuevoPuntaje + bonusAplicado,
+              qrs_completados: nuevosQrs,
+              updated_at: new Date().toISOString()
+            })
+            .eq('rut', p.rut);
+
+          let totalText = `Tu puntaje total: ${nuevoPuntaje + bonusAplicado} pts`;
+          if (bonusAplicado > 0) totalText += ` (¡+${bonusAplicado} bonus por completar todo!)`;
+          document.getElementById('ptsTotal').textContent = totalText;
+
+          // Registrar respuestas detalladas
+          await sbClient.from('qrhunt_respuestas').insert({
+            rut: p.rut,
+            qr_numero: qrNum,
+            correctas: correctasCount,
+            puntos: pts + bonusAplicado,
+            created_at: new Date().toISOString()
+          });
+
+        } catch (err) {
+          console.error('Error guardando:', err);
+          document.getElementById('ptsTotal').textContent = `Puntos registrados: ${pts}`;
+        }
+      }
+
+      const rs = document.getElementById('resultScreen');
+      rs.style.display = 'block';
+      rs.classList.add('fade-in');
+    }
+
+    function mostrarYaCompletado() {
+      document.getElementById('questionZone').style.display = 'none';
+      document.getElementById('qIndicator').style.display = 'none';
+      document.getElementById('alreadyDone').style.display = 'block';
+    }
+
+    function irDashboard() { window.location.href = 'dashboard.html'; }
+    function irRanking() { window.location.href = 'ranking.html'; }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initSupabase();
+      init();
+    });
+  </script>
+</body>
+</html>
