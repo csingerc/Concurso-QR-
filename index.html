@@ -6,6 +6,7 @@
   <title>Inocuidad en Acción – South Wind</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     :root {
       --bg: #0a1628;
@@ -437,15 +438,6 @@
     <div class="footer-note">South Wind · Calidad &amp; Inocuidad 2025</div>
   </div>
 
-  <script>
-    // Supabase JS v2 via CDN — expuesto como window.supabase_js
-    (function() {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-      s.onload = () => { window.supabase_js = window.supabase; };
-      document.head.appendChild(s);
-    })();
-  </script>
   <script src="js/config.js"></script>
   <script src="js/rut-db.js"></script>
   <script src="js/app.js"></script>

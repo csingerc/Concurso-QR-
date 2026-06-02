@@ -6,6 +6,7 @@
   <title>Mi Progreso – South Wind</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     :root {
       --bg: #0a1628;
@@ -308,15 +309,6 @@
     </button>
 
   </div>
-
-  <script>
-    (function() {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-      s.onload = () => { window.supabase_js = window.supabase; };
-      document.head.appendChild(s);
-    })();
-  </script>
   <script src="js/config.js"></script>
   <script src="js/rut-db.js"></script>
   <script>
@@ -324,9 +316,9 @@
     let supabase;
 
     async function initSupabase() {
-      const { createClient } = window.supabase_js || {};
-      if (!createClient) return;
-      supabase = createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
+      if (window.supabase && window.supabase.createClient) {
+        supabase = window.supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
+      }
     }
 
     function getParticipante() {
@@ -412,7 +404,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      initSupabase().then(cargarDatos);
+      initSupabase();
+      cargarDatos();
     });
   </script>
 </body>
