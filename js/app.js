@@ -59,7 +59,7 @@ async function confirmarParticipante() {
   btn.disabled = true;
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
       .from('qrhunt_participantes')
       .upsert(
         { rut, nombre, updated_at: new Date().toISOString() },
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function cargarEstadisticasGlobales() {
   if (!sbClient) return;
   try {
-    const { data } = await supabase
+    const { data } = await sbClient
       .from('qrhunt_participantes')
       .select('puntaje, qrs_completados');
 
@@ -169,7 +169,7 @@ async function cargarMiniRanking() {
   if (!el) return;
 
   try {
-    const { data } = await supabase
+    const { data } = await sbClient
       .from('qrhunt_participantes')
       .select('nombre, puntaje, qrs_completados')
       .order('puntaje', { ascending: false })
