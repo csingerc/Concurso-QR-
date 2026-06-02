@@ -1,445 +1,136 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Inocuidad en Acción – South Wind</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <style>
-    :root {
-      --bg: #0a1628;
-      --surface: #111f38;
-      --surface2: #1a2f50;
-      --accent: #00c896;
-      --accent2: #00a8ff;
-      --warn: #ff6b35;
-      --text: #f0f4ff;
-      --text-muted: #7a90b8;
-      --border: #1e3358;
-      --radius: 16px;
-    }
+# QR Hunt – Día Mundial de la Inocuidad
+## South Wind · 4 de junio 2025
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+---
 
-    body {
-      font-family: 'Archivo', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 16px 48px;
-    }
+## Archivos del proyecto
 
-    /* Fondo animado */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 60% 40% at 20% 20%, rgba(0,200,150,0.08) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(0,168,255,0.07) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
+```
+qr-hunt/
+├── index.html          ← Entrada: login por RUT
+├── dashboard.html      ← Progreso personal del participante
+├── preguntas.html      ← Estación QR (se carga con ?qr=1 a ?qr=5)
+├── ranking.html        ← Ranking en tiempo real (completo)
+├── js/
+│   ├── config.js       ← ⚠️ Aquí van las credenciales de Supabase
+│   ├── rut-db.js       ← Base RUT→Nombre (generada con convert_rut_csv.py)
+│   ├── preguntas.js    ← Banco de preguntas (5 QR × 3 preguntas)
+│   └── app.js          ← Lógica de login, estadísticas, mini-ranking
+├── convert_rut_csv.py  ← Script para generar rut-db.js desde CSV
+└── supabase_setup.sql  ← DDL de tablas
+```
 
-    .container {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 480px;
-    }
+---
 
-    /* Header */
-    .header {
-      text-align: center;
-      margin-bottom: 36px;
-      padding-top: 16px;
-    }
+## Paso 1 – Crear tablas en Supabase
 
-    .badge {
-      display: inline-block;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: var(--bg);
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 6px 14px;
-      border-radius: 100px;
-      margin-bottom: 16px;
-    }
+Ejecutar `supabase_setup.sql` en el SQL Editor de tu proyecto Supabase.
 
-    .header h1 {
-      font-family: 'Archivo Black', sans-serif;
-      font-size: clamp(26px, 7vw, 36px);
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-      margin-bottom: 8px;
-    }
+---
 
-    .header h1 span {
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+## Paso 2 – Cargar lista de RUT
 
-    .header p {
-      color: var(--text-muted);
-      font-size: 15px;
-      line-height: 1.5;
-    }
+```bash
+python3 convert_rut_csv.py empleados.csv > js/rut-db.js
+```
 
-    /* Card */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px 24px;
-      margin-bottom: 16px;
-    }
+El CSV debe tener columnas `RUT` y `NOMBRE` (separador `,` o `;`).  
+El script normaliza automáticamente (quita puntos, conserva guión).
 
-    .card-label {
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 20px;
-    }
+---
 
-    /* Input RUT */
-    .input-group {
-      margin-bottom: 20px;
-    }
+## Paso 3 – Configurar credenciales
 
-    .input-group label {
-      display: block;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
+Editar `js/config.js`:
 
-    .input-group input {
-      width: 100%;
-      background: var(--surface2);
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: 'Archivo', sans-serif;
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      padding: 14px 16px;
-      outline: none;
-      transition: border-color 0.2s;
-      -webkit-appearance: none;
-    }
+```js
+const CONFIG = {
+  supabase: {
+    url: 'https://TU-PROJECT-ID.supabase.co',
+    anonKey: 'TU-ANON-KEY',
+  },
+  ...
+};
+```
 
-    .input-group input::placeholder { color: var(--text-muted); font-weight: 400; font-size: 16px; }
-    .input-group input:focus { border-color: var(--accent); }
+Obtener ambos valores desde: Supabase Dashboard → Project Settings → API
 
-    .input-hint {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 6px;
-    }
+---
 
-    /* Botón principal */
-    .btn-primary {
-      width: 100%;
-      background: linear-gradient(135deg, var(--accent), #00a878);
-      border: none;
-      border-radius: 12px;
-      color: #0a1628;
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 16px;
-      letter-spacing: 0.02em;
-      padding: 16px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
-    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+## Paso 4 – Deploy en Cloudflare Pages
 
-    /* Confirm card */
-    .confirm-name {
-      display: none;
-      flex-direction: column;
-      gap: 16px;
-    }
+1. Subir carpeta `qr-hunt/` a un repositorio GitHub (puede ser privado)
+2. Cloudflare Pages → Create project → Connect to Git → seleccionar repo
+3. Build settings:
+   - **Framework preset**: None
+   - **Build command**: (vacío)
+   - **Build output directory**: `/` (raíz)
+4. Deploy → obtener URL (ej: `qr-hunt.pages.dev`)
 
-    .name-display {
-      background: var(--surface2);
-      border: 1.5px solid var(--accent);
-      border-radius: 12px;
-      padding: 18px;
-      text-align: center;
-    }
+---
 
-    .name-display .name-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
+## Paso 5 – Generar QR para cada estación
 
-    .name-display .name-value {
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 22px;
-      color: var(--accent);
-    }
+Usar cualquier generador de QR (qr-code-generator.com, etc.):
 
-    .btn-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+| QR | URL |
+|----|-----|
+| QR 1 | `https://tu-dominio.pages.dev/preguntas.html?qr=1` |
+| QR 2 | `https://tu-dominio.pages.dev/preguntas.html?qr=2` |
+| QR 3 | `https://tu-dominio.pages.dev/preguntas.html?qr=3` |
+| QR 4 | `https://tu-dominio.pages.dev/preguntas.html?qr=4` |
+| QR 5 | `https://tu-dominio.pages.dev/preguntas.html?qr=5` |
 
-    .btn-secondary {
-      background: var(--surface2);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      color: var(--text-muted);
-      font-family: 'Archivo', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      padding: 14px;
-      cursor: pointer;
-      transition: border-color 0.2s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn-secondary:active { opacity: 0.7; }
+Imprimir en hoja A5, plastificar, ubicar en planta.
 
-    .btn-confirm {
-      background: linear-gradient(135deg, var(--accent), #00a878);
-      border: none;
-      border-radius: 12px;
-      color: #0a1628;
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 14px;
-      padding: 14px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .btn-confirm:active { opacity: 0.85; }
+---
 
-    /* Error */
-    .error-msg {
-      display: none;
-      background: rgba(255,107,53,0.1);
-      border: 1px solid rgba(255,107,53,0.3);
-      border-radius: 10px;
-      color: var(--warn);
-      font-size: 14px;
-      padding: 12px 14px;
-      text-align: center;
-      margin-top: 12px;
-    }
+## Paso 6 – Pantalla de ranking (opcional)
 
-    /* Stats card */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
-    }
+Para proyectar en pantalla grande durante el evento:
 
-    .stat-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 10px;
-      text-align: center;
-    }
+```
+https://tu-dominio.pages.dev/ranking.html
+```
 
-    .stat-value {
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 24px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+Se auto-refresca cada 15 segundos.
 
-    .stat-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
+---
 
-    /* Ranking preview */
-    .ranking-card { cursor: pointer; }
-    .ranking-card:hover { border-color: var(--accent2); }
+## Flujo del participante
 
-    .ranking-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .ranking-row:last-child { border-bottom: none; }
+```
+Escanea QR de estación
+        ↓
+preguntas.html?qr=N
+        ↓
+¿Tiene sesión? → NO → index.html (login por RUT)
+        ↓ SÍ
+Responde 3 preguntas
+        ↓
+Puntaje calculado y guardado en Supabase
+        ↓
+Resultado + acceso a dashboard y ranking
+```
 
-    .rank-pos {
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 13px;
-      color: var(--text-muted);
-      width: 24px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-    .rank-pos.gold { color: #ffd700; }
-    .rank-pos.silver { color: #c0c0c0; }
-    .rank-pos.bronze { color: #cd7f32; }
+---
 
-    .rank-name {
-      flex: 1;
-      font-size: 14px;
-      font-weight: 500;
-    }
+## Sistema de puntos
 
-    .rank-pts {
-      font-family: 'Archivo Black', sans-serif;
-      font-size: 15px;
-      color: var(--accent);
-    }
+| Correctas | Puntos |
+|-----------|--------|
+| 1 de 3    | 10 pts |
+| 2 de 3    | 25 pts (+5 bonus) |
+| 3 de 3    | 45 pts (+10 bonus) |
+| Completar los 5 QR | +20 pts bonus |
+| **Máximo posible** | **245 pts** |
 
-    .rank-qrs {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
+---
 
-    .loading-dot {
-      display: inline-block;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-    .loading-dot:nth-child(2) { animation-delay: 0.2s; }
-    .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+## Supabase RLS
 
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; transform: scale(0.8); }
-      50% { opacity: 1; transform: scale(1.2); }
-    }
-
-    .spinner {
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      width: 20px; height: 20px;
-      animation: spin 0.7s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .footer-note {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 12px;
-      margin-top: 24px;
-    }
-
-    /* Animación entrada */
-    .fade-in {
-      animation: fadeIn 0.4s ease forwards;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-
-    <!-- Header -->
-    <div class="header fade-in">
-      <div class="badge">🌍 7 de junio · Día Mundial de la Inocuidad</div>
-      <h1>Búsqueda<br><span>del Tesoro</span></h1>
-      <p>Recorre la planta, escanea los QR y responde las preguntas. ¡El más rápido y certero gana!</p>
-    </div>
-
-    <!-- Stats globales -->
-    <div class="stats-row fade-in" id="globalStats">
-      <div class="stat-item">
-        <div class="stat-value" id="statParticipants">—</div>
-        <div class="stat-label">Participantes</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="statResponses">—</div>
-        <div class="stat-label">Respuestas</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="statMaxPts">—</div>
-        <div class="stat-label">Puntaje top</div>
-      </div>
-    </div>
-
-    <!-- Login card -->
-    <div class="card fade-in" id="loginCard">
-      <div class="card-label">Identifícate para participar</div>
-
-      <div id="rutForm">
-        <div class="input-group">
-          <label for="rutInput">Tu RUT</label>
-          <input
-            type="text"
-            id="rutInput"
-            placeholder="12345678-9"
-            maxlength="12"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-          />
-          <div class="input-hint">Sin puntos, con guión. Ej: 12345678-9</div>
-        </div>
-        <button class="btn-primary" id="btnBuscar" onclick="buscarRut()">Buscar →</button>
-        <div class="error-msg" id="errorMsg"></div>
-      </div>
-
-      <div class="confirm-name" id="confirmBlock">
-        <div class="name-display">
-          <div class="name-label">¿Eres tú?</div>
-          <div class="name-value" id="nombreConfirm">—</div>
-        </div>
-        <div class="btn-row">
-          <button class="btn-secondary" onclick="resetLogin()">No soy yo</button>
-          <button class="btn-confirm" onclick="confirmarParticipante()">¡Sí, soy yo! →</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mini ranking -->
-    <div class="card ranking-card fade-in" onclick="window.location.href='ranking.html'">
-      <div class="card-label" style="display:flex; justify-content:space-between; align-items:center;">
-        <span>Ranking en vivo</span>
-        <span style="color:var(--accent2); font-size:11px;">Ver completo →</span>
-      </div>
-      <div id="miniRanking">
-        <div style="text-align:center; padding: 16px 0; color: var(--text-muted); font-size:13px;">
-          <span class="loading-dot"></span>
-          <span class="loading-dot"></span>
-          <span class="loading-dot"></span>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer-note">South Wind · Calidad &amp; Inocuidad 2025</div>
-  </div>
-
-  <script src="js/config.js"></script>
-  <script src="js/rut-db.js"></script>
-  <script src="js/app.js"></script>
-</body>
-</html>
+Las tablas usan RLS habilitado. La política permite:
+- INSERT/UPDATE en `participantes`: cualquier anon (controlado por RUT)
+- SELECT en `participantes`: público (para el ranking)
+- INSERT en `respuestas`: cualquier anon
+- SELECT en `respuestas`: solo admin (datos internos)
