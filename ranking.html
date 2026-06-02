@@ -300,7 +300,7 @@
       if (!sbClient) return;
 
       try {
-        const { data } = await supabase
+        const { data } = await sbClient
           .from('qrhunt_participantes')
           .select('rut, nombre, puntaje, qrs_completados')
           .order('puntaje', { ascending: false })

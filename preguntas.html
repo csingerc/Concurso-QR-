@@ -393,7 +393,7 @@
 
       // Verificar si ya completó este QR
       if (supabase) {
-        const { data } = await supabase
+        const { data } = await sbClient
           .from('qrhunt_participantes')
           .select('qrs_completados')
           .eq('rut', p.rut)
@@ -515,7 +515,7 @@
       if (supabase && p) {
         try {
           // Obtener puntaje actual
-          const { data: current } = await supabase
+          const { data: current } = await sbClient
             .from('qrhunt_participantes')
             .select('puntaje, qrs_completados')
             .eq('rut', p.rut)
@@ -531,7 +531,7 @@
             bonusAplicado = CONFIG.bonusCompletarTodo;
           }
 
-          await supabase
+          await sbClient
             .from('qrhunt_participantes')
             .update({
               puntaje: nuevoPuntaje + bonusAplicado,

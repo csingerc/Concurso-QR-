@@ -343,7 +343,7 @@
       if (!sbClient) return;
 
       try {
-        const { data } = await supabase
+        const { data } = await sbClient
           .from('qrhunt_participantes')
           .select('puntaje, qrs_completados')
           .eq('rut', p.rut)
