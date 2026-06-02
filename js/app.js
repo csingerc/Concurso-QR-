@@ -71,7 +71,9 @@ async function confirmarParticipante() {
     if (error) throw error;
 
     setParticipante({ rut, nombre, id: data.id });
-    window.location.href = 'dashboard.html';
+    const params = new URLSearchParams(window.location.search);
+    const returnUrl = params.get('returnUrl');
+    window.location.href = returnUrl ? decodeURIComponent(returnUrl) : 'dashboard.html';
 
   } catch (err) {
     console.error(err);
