@@ -261,6 +261,12 @@
       <p id="rankingMeta">Actualizando...</p>
     </div>
 
+    <!-- Tabs -->
+    <div style="display:flex; gap:8px; margin-bottom:20px;">
+      <button id="tabGeneral" onclick="setTab('general')" style="flex:1; background:var(--accent); border:none; border-radius:10px; color:#0a1628; font-family:'Archivo Black',sans-serif; font-size:13px; padding:10px; cursor:pointer;">🌱 General</button>
+      <button id="tabCalidad" onclick="setTab('calidad')" style="flex:1; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; color:var(--text-muted); font-family:'Archivo Black',sans-serif; font-size:13px; padding:10px; cursor:pointer;">🔬 Calidad</button>
+    </div>
+
     <!-- Podio top 3 -->
     <div class="podio" id="podio">
       <!-- Generado por JS -->
@@ -300,12 +306,19 @@
       if (!sbClient) return;
 
       try {
-        const { data } = await sbClient
+        // Filtrar por nivel usando la lista de RUTs de calidad
+        let query = sbClient
           .from('qrhunt_participantes')
           .select('rut, nombre, puntaje, qrs_completados')
           .order('puntaje', { ascending: false })
-          .order('updated_at', { ascending: true }) // desempate: primero en llegar
+          .order('updated_at', { ascending: true })
           .limit(50);
+
+        const { data: allData } = await query;
+        const data = (allData || []).filter(row => {
+          const esC = CONFIG.rutsCalidad.includes(row.rut);
+          return tabActual === 'calidad' ? esC : !esC;
+        });
 
         if (!data || data.length === 0) {
           document.getElementById('rankingList').innerHTML =
@@ -394,6 +407,27 @@
           </div>
         `;
       }).join('');
+    }
+
+
+    let tabActual = 'general';
+
+    function setTab(tab) {
+      tabActual = tab;
+      const btnG = document.getElementById('tabGeneral');
+      const btnC = document.getElementById('tabCalidad');
+      if (tab === 'general') {
+        btnG.style.background = 'var(--accent)'; btnG.style.color = '#0a1628';
+        btnG.style.border = 'none';
+        btnC.style.background = 'var(--surface)'; btnC.style.color = 'var(--text-muted)';
+        btnC.style.border = '1.5px solid var(--border)';
+      } else {
+        btnC.style.background = '#a855f7'; btnC.style.color = '#fff';
+        btnC.style.border = 'none';
+        btnG.style.background = 'var(--surface)'; btnG.style.color = 'var(--text-muted)';
+        btnG.style.border = '1.5px solid var(--border)';
+      }
+      cargarRanking();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
