@@ -398,10 +398,8 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       initSupabase();
-      (() => {
-        cargarRanking();
-        setInterval(cargarRanking, CONFIG.rankingRefreshMs);
-      });
+      cargarRanking();
+      setInterval(cargarRanking, CONFIG.rankingRefreshMs);
     });
   </script>
 </body>
