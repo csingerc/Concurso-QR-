@@ -13,14 +13,14 @@ const PREGUNTAS = {
     1: [
       {
         tema: "Higiene Personal",
-        pregunta: "¿Cuántos segundos mínimo debes lavarte las manos para eliminar bacterias?",
+        pregunta: "¿Cuántos segundos mínimo debes lavarte las manos para que el lavado sea efectivo?",
         opciones: [
-          { texto: "5 segundos, si uso bastante jabón", correcta: false },
-          { texto: "20 segundos, frotando bien todas las partes", correcta: true },
-          { texto: "60 segundos siempre", correcta: false },
+          { texto: "10 segundos con jabón antibacterial — el jabón hace el trabajo", correcta: false },
+          { texto: "20 segundos frotando todas las partes", correcta: true },
+          { texto: "30 segundos, solo si manipulé producto crudo", correcta: false },
         ],
-        feedbackCorrecto: "✅ ¡Correcto! 20 segundos frotando palmas, dorso, entre dedos y muñecas. Recomendación OMS.",
-        feedbackIncorrecto: "❌ Son al menos 20 segundos. Menos tiempo no elimina eficazmente los microorganismos.",
+        feedbackCorrecto: "✅ ¡Correcto! 20 segundos frotando palmas, dorso, entre dedos y muñecas. El jabón antibacterial no reduce ese tiempo — la fricción mecánica es clave. (OMS)",
+        feedbackIncorrecto: "❌ Son 20 segundos, independiente del tipo de jabón o de lo que manipulaste antes. La fricción mecánica es lo que elimina los microorganismos.",
       },
       {
         tema: "Higiene Personal",
@@ -143,14 +143,14 @@ const PREGUNTAS = {
       },
       {
         tema: "Alérgenos",
-        pregunta: "¿Por qué está prohibido ingresar alimentos a la planta?",
+        pregunta: "¿Por qué está prohibido ingresar alimentos a la planta, si el trabajador los consume solo en el casino?",
         opciones: [
-          { texto: "Para evitar olores en el área de proceso", correcta: false },
-          { texto: "Para evitar que alérgenos externos contaminen el producto", correcta: true },
-          { texto: "Es solo una norma de orden, no tiene impacto en inocuidad", correcta: false },
+          { texto: "Porque el reglamento interno lo exige, aunque el riesgo real es bajo", correcta: false },
+          { texto: "Porque los alérgenos pueden transferirse antes de llegar al casino — por manos, ropa o superficies en vestuarios", correcta: true },
+          { texto: "Solo aplica para alimentos con mariscos o pescado de otra especie", correcta: false },
         ],
-        feedbackCorrecto: "✅ ¡Correcto! El único alérgeno en planta es el pescado. Cualquier alimento externo puede introducir alérgenos que contaminen el producto y pongan en riesgo a consumidores sensibles.",
-        feedbackIncorrecto: "❌ La prohibición de ingreso de alimentos es una medida de control de alérgenos, no solo de orden. Protege al consumidor final.",
+        feedbackCorrecto: "✅ ¡Correcto! El trayecto desde la entrada hasta el casino ya implica riesgo: manos que tocaron el alimento, ropa contaminada, superficies compartidas. El control empieza en la puerta.",
+        feedbackIncorrecto: "❌ El riesgo no espera al casino. La transferencia ocurre antes — en vestuarios, pasillos y superficies compartidas. Por eso la prohibición es desde el ingreso al sitio.",
       },
     ],
 
@@ -179,14 +179,14 @@ const PREGUNTAS = {
       },
       {
         tema: "Cultura de Inocuidad",
-        pregunta: "La inocuidad alimentaria, ¿de quién es responsabilidad?",
+        pregunta: "Detectas una no conformidad en tu línea pero tu turno termina en 10 minutos. ¿Qué haces?",
         opciones: [
-          { texto: "Solo del área de Calidad", correcta: false },
-          { texto: "Del supervisor de turno", correcta: false },
-          { texto: "De todos en la planta, sin excepción", correcta: true },
+          { texto: "Lo dejo anotado para que lo vea el turno siguiente", correcta: false },
+          { texto: "Lo reporto ahora — el tiempo no justifica esperar", correcta: true },
+          { texto: "Si no afecta el producto final, no es urgente", correcta: false },
         ],
-        feedbackCorrecto: "✅ ¡Correcto! Desde el operario de ingreso hasta gerencia: todos somos parte de la cadena.",
-        feedbackIncorrecto: "❌ Calidad lidera, pero la inocuidad real depende de cada persona en cada momento.",
+        feedbackCorrecto: "✅ ¡Correcto! Una no conformidad sin reporte inmediato puede llegar al cliente. El turno siguiente parte sin contexto y el problema se agrava.",
+        feedbackIncorrecto: "❌ Las no conformidades se reportan en el momento. Esperar al turno siguiente o minimizar el impacto son las decisiones que generan retiros de mercado.",
       },
     ],
   },
