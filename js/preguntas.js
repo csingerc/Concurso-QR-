@@ -209,7 +209,7 @@ const PREGUNTAS = {
       },
       {
         tema: "Microbiología Aplicada",
-        pregunta: "¿Qué patógeno tiene mayor tasa de mortalidad en casos confirmados de enfermedad?",
+        pregunta: "Entre Listeria monocytogenes y Salmonella spp., ¿cuál tiene mayor tasa de mortalidad en casos confirmados?",
         opciones: [
           { texto: "Son similares, ambas rondan el 1%", correcta: false },
           { texto: "Listeria monocytogenes", correcta: true },
