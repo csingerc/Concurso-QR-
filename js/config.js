@@ -12,7 +12,20 @@ const CONFIG = {
   // Reemplazar con lista real cuando llegue el CSV
   // Formato: sin puntos, con guión, lowercase
   rutsCalidad: [
-    // '16784918-0',  // Singer Camilo — descomentar cuando se confirme
+    '11551147-5',
+    '13452585-1',
+    '14009315-7',
+    '15939492-1',
+    '16784918-0',
+    '17254373-1',
+    '17920195-k',
+    '18409122-4',
+    '18762928-4',
+    '19182412-1',
+    '19376985-3',
+    '19483849-2',
+    '26956333-8',
+    '27074215-7',
   ],
 
   // ── Puntos base por correctas en un QR ──────────────────
