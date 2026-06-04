@@ -174,6 +174,7 @@ const RUT_DB = {
   "9589943-9": "Yolanda Celedon",
   "9780183-5": "Admiel Orlando Varas",
   "9975461-3": "Jose Quiroz",
+  "17957873-5": "Saez Catalina",
 };
 
 function normalizarRut(rut) {
